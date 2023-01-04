@@ -38,8 +38,9 @@ namespace AngularLogin
             {
                 option.UseSqlServer(Configuration.GetConnectionString("SqlServerConnStr"));
             });
-        
-            services.AddAuthentication(x => {
+
+            services.AddAuthentication(x =>
+            {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(x =>
@@ -54,8 +55,7 @@ namespace AngularLogin
                     ValidateIssuer = false
                 };
             });
-
-
+        }
             // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
             public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
             {
@@ -83,4 +83,5 @@ namespace AngularLogin
                 });
             }
         }
-    }
+    } 
+
