@@ -1,11 +1,13 @@
 ﻿using AngularLogin.Context;
 using AngularLogin.Helpers;
 using AngularLogin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -28,23 +30,24 @@ namespace AngularLogin.Controllers
         {
             if (loginObj == null)
                 return BadRequest();
-            
+
             //username exist
             var user = await _authDbContext.Users
                     .FirstOrDefaultAsync(x => x.UserName == loginObj.UserName);
 
-                if (user == null)
-                    return NotFound(new { Message = "User Not Found" });
+            if (user == null)
+                return NotFound(new { Message = "User Not Found" });
 
-                if (!PasswordHasher.VerifyPassword(loginObj.Password , user.Password))
-                {
-                    return BadRequest(new { Message = "Incorrect Password" });
-                }
-            
+            if (!PasswordHasher.VerifyPassword(loginObj.Password, user.Password))
+            {
+                return BadRequest(new { Message = "Incorrect Password" });
+            }
+            user.Token = CreateJwtToken(user);
+
             return Ok(new
             {
-                Token = "",
-            Message = "Login Success" });
+                Token = user.Token,
+                Message = "Login Success" });
         }
 
         [HttpPost("registeruser")]
@@ -61,7 +64,7 @@ namespace AngularLogin.Controllers
 
             var pass = PasswordStrength(userObj.Password);
             if (!string.IsNullOrEmpty(pass))
-                return BadRequest(new { Message = pass.ToString() }) ;
+                return BadRequest(new { Message = pass.ToString() });
 
             userObj.Password = PasswordHasher.HashPassword(userObj.Password);
             userObj.Role = "User";
@@ -71,7 +74,7 @@ namespace AngularLogin.Controllers
             return Ok(new { Message = "User Registered Successfully" });
 
         }
-        private Task <bool> CheckUserNameExistAsync(string username)
+        private Task<bool> CheckUserNameExistAsync(string username)
             => _authDbContext.Users.AnyAsync(x => x.UserName == username);
 
         private Task<bool> CheckEmailExistAsync(string email)
@@ -82,7 +85,7 @@ namespace AngularLogin.Controllers
             StringBuilder sb = new StringBuilder();
             if (password.Length < 8)
                 sb.Append("Password Length Should be more than 8 Characters" + Environment.NewLine);
-            if (!(Regex.IsMatch(password,"[a-z]") && Regex.IsMatch(password, "[A-Z]") &&
+            if (!(Regex.IsMatch(password, "[a-z]") && Regex.IsMatch(password, "[A-Z]") &&
                 Regex.IsMatch(password, "[0-9]")))
                 sb.Append("Password Should Contain Capitol, Small Letters & Numbers" + Environment.NewLine);
             if (!(Regex.IsMatch(password, "[!#$%&'()*+,-./:;<=>?@_`{|}~]")))
@@ -103,12 +106,65 @@ namespace AngularLogin.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = identity,
-                Expires = DateTime.Now.AddDays(2),
+                Expires = DateTime.Now.AddDays(1),
                 SigningCredentials = credentials
             };
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);
             return jwtTokenHandler.WriteToken(token);
         }
-    }
 
+        [Authorize]
+        [HttpGet]
+         public async Task<ActionResult<User>> GetAllUsers()
+        {
+            return Ok(await _authDbContext.Users.ToListAsync());
+        }
+
+        [HttpPut("updateuser")]
+        public async Task<IActionResult> UpdateUser([FromBody] User userObj)
+        {
+            if (userObj == null)
+                return BadRequest();
+
+            var user = await _authDbContext.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userObj.Id);
+            if (user == null)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = "User Not Found"
+                });
+            }
+            else
+            {
+                 _authDbContext.Users.Update(userObj);
+                await _authDbContext.SaveChangesAsync();
+                return Ok(new
+                {
+                    StatusCode = 200,
+                    Message = "User Updated Successfully"
+                });
+            }
+        }
+        [HttpDelete("deleteuser/{id}")]
+        public async Task <IActionResult> DeleteEmployee([FromRoute]int id)
+        {
+            var user = _authDbContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            if (user == null)
+            {
+                return NotFound(new {
+                        StatusCode =404,
+                        Message = "User Not Found"});
+            }
+            else
+            {
+                _authDbContext.Remove(user);
+                await _authDbContext.SaveChangesAsync();
+            }
+            return Ok(new {
+                StatusCode = 200,
+                Message = "User Deleted Succesfully"
+            });
+        }
+    }
 }
