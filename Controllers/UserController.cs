@@ -149,7 +149,7 @@ namespace AngularLogin.Controllers
         [HttpDelete("deleteuser/{id}")]
         public async Task <IActionResult> DeleteEmployee([FromRoute]int id)
         {
-            var user = _authDbContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var user = await _authDbContext.Users.FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
             {
                 return NotFound(new {
@@ -158,7 +158,7 @@ namespace AngularLogin.Controllers
             }
             else
             {
-                _authDbContext.Remove(user);
+                 _authDbContext.Remove(user);
                 await _authDbContext.SaveChangesAsync();
             }
             return Ok(new {

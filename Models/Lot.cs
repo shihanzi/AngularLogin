@@ -20,5 +20,10 @@ namespace AngularLogin.Models
         public bool Status { get; set; }
         public Location Location { get; set; }
         public int LocationId { get; set; }
+        public Rep Rep { get; set; }
+        public Customer Customer  { get; set; }
+        public DateTime ReceivedDate { get; set; }
+        public DateTime SoldDate { get; set; }
+
     }
 }
