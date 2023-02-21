@@ -3,9 +3,6 @@ using AngularLogin.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace AngularLogin.Controllers
@@ -21,7 +18,7 @@ namespace AngularLogin.Controllers
             _authDbContext = appDbContext;
         }
 
-        [HttpPost("RegisterLocation")]
+        [HttpPost("RegisterLot")]
         public async Task<IActionResult> RegisterLocation([FromBody] Lot LotObj)
         {
             if (LotObj == null)
@@ -71,7 +68,7 @@ namespace AngularLogin.Controllers
             }
         }
 
-        [HttpDelete("deletelocation/{id}")]
+        [HttpDelete("deletelot/{id}")]
         public async Task<IActionResult> DeleteLocation([FromRoute] int id)
         {
             var lot = await _authDbContext.Lots.FirstOrDefaultAsync(x => x.LotId == id);
