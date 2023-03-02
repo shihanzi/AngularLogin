@@ -25,19 +25,14 @@ namespace AngularLogin.Context
             modelBuilder.Entity<User>().ToTable("users");
             modelBuilder.Entity<Location>().ToTable("locations");
             modelBuilder.Entity<Lot>()
-            .HasOne(e => e.Location)
+            .HasOne(e => e.Customer)
             .WithMany(s => s.Lots)
-            .HasForeignKey(e => e.LotId);
+            .HasForeignKey(e => e.CustomerId);
 
             modelBuilder.Entity<Lot>()
-          .HasOne(e => e.Customer)
-          .WithMany()
-          .HasForeignKey(e => e.LotId);
-
-            modelBuilder.Entity<Lot>()
-          .HasOne(e => e.Rep)
-          .WithMany()
-          .HasForeignKey(e => e.LotId);
+                .HasOne(e => e.Rep)
+                .WithMany(s => s.Lots)
+                .HasForeignKey(e => e.RepId);
         }
     }
 }

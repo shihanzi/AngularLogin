@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AngularLogin.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230218134909_AddCustomerAndRepFewUpdates1")]
-    partial class AddCustomerAndRepFewUpdates1
+    [Migration("20230228051909_first")]
+    partial class first
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -75,9 +75,11 @@ namespace AngularLogin.Migrations
             modelBuilder.Entity("AngularLogin.Models.Lot", b =>
                 {
                     b.Property<int>("LotId")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .UseIdentityColumn();
 
-                    b.Property<int?>("CustomerId")
+                    b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<int>("LocationId")
@@ -89,7 +91,7 @@ namespace AngularLogin.Migrations
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("RepId1")
+                    b.Property<int>("RepId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("SoldDate")
@@ -105,7 +107,9 @@ namespace AngularLogin.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.HasIndex("RepId1");
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("RepId");
 
                     b.ToTable("Lots");
                 });
@@ -169,31 +173,23 @@ namespace AngularLogin.Migrations
 
             modelBuilder.Entity("AngularLogin.Models.Lot", b =>
                 {
-                    b.HasOne("AngularLogin.Models.Customer", null)
-                        .WithMany("Lots")
-                        .HasForeignKey("CustomerId");
-
                     b.HasOne("AngularLogin.Models.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("LotId")
+                        .WithMany("Lots")
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("AngularLogin.Models.Location", "Location")
                         .WithMany("Lots")
-                        .HasForeignKey("LotId")
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("AngularLogin.Models.Rep", "Rep")
-                        .WithMany()
-                        .HasForeignKey("LotId")
+                        .WithMany("Lots")
+                        .HasForeignKey("RepId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("AngularLogin.Models.Rep", null)
-                        .WithMany("Lots")
-                        .HasForeignKey("RepId1");
 
                     b.Navigation("Customer");
 
