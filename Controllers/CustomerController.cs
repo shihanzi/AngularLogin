@@ -1,8 +1,8 @@
 ﻿using AngularLogin.Context;
+using AngularLogin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace AngularLogin.Controllers
@@ -17,52 +17,52 @@ namespace AngularLogin.Controllers
         {
             _authDbContext = appDbContext;
         }
-        [HttpPost("RegisterLot")]
-        public async Task<IActionResult> RegisterLocation([FromBody] Lot LotObj)
+        [HttpPost("RegisterCustomer")]
+        public async Task<IActionResult> RegisterCustomer([FromBody] Customer CustomerObj)
         {
-            if (LotObj == null)
+            if (CustomerObj == null)
                 return BadRequest();
 
-            if (await CheckLotIdExistAsync(LotObj.LotId))
-                return BadRequest(new { Message = "Lot ID Already Exist" });
+            if (await CheckCustomerIdExistAsync(CustomerObj.CustomerId))
+                return BadRequest(new { Message = "Customer ID Already Exist" });
 
-            await _authDbContext.Lots.AddAsync(LotObj);
+            await _authDbContext.Customers.AddAsync(CustomerObj);
             await _authDbContext.SaveChangesAsync();
-            return Ok(new { Message = "Lot Registered Successfully" });
+            return Ok(new { Message = "Customer Registered Successfully" });
         }
-        private Task<bool> CheckLotIdExistAsync(int lotId)
-            => _authDbContext.Lots.AnyAsync(x => x.LotId == lotId);
+        private Task<bool> CheckCustomerIdExistAsync(int CustomerId)
+            => _authDbContext.Lots.AnyAsync(x => x.CustomerId == CustomerId);
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<Location>> GetAllLots()
+        public async Task<ActionResult<Location>> GetAllCustomers()
         {
-            return Ok(await _authDbContext.Lots.ToListAsync());
+            return Ok(await _authDbContext.Customers.ToListAsync());
         }
 
-        [HttpPut("updatelots")]
-        public async Task<IActionResult> UpdateLot([FromBody] Lot LotObj)
+        [HttpPut("updateCustomers")]
+        public async Task<IActionResult> UpdateCustomer([FromBody] Customer CustomerObj)
         {
-            if (LotObj == null)
+            if (CustomerObj == null)
                 return BadRequest();
 
-            var lot = await _authDbContext.Lots.AsNoTracking().FirstOrDefaultAsync(x => x.LotId == LotObj.LotId);
-            if (lot == null)
+            var customer = await _authDbContext.Customers.AsNoTracking().FirstOrDefaultAsync(x => x.CustomerId == CustomerObj.CustomerId);
+            if (customer == null)
             {
                 return BadRequest(new
                 {
                     StatusCode = 400,
-                    Message = "Lot Not Found"
+                    Message = "Customer Not Found"
                 });
             }
             else
             {
-                _authDbContext.Lots.Update(LotObj);
+                _authDbContext.Customers.Update(CustomerObj);
                 await _authDbContext.SaveChangesAsync();
                 return Ok(new
                 {
                     StatusCode = 200,
-                    Message = "Lot Updated Successfully"
+                    Message = "Customer Updated Successfully"
                 });
             }
         }
